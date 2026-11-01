@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EmailTriage AI</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#15243a;background:#f3f6fb;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0}header{background:#142843;color:#fff;padding:24px max(24px,calc((100vw - 1080px)/2))}
+    header h1{font-size:25px;margin:0 0 5px}header p{margin:0;color:#c5d2e1;font-size:14px}
+    main{max-width:1080px;margin:26px auto;padding:0 20px;display:grid;grid-template-columns:minmax(300px,390px) 1fr;gap:20px;align-items:start}
+    .panel{background:white;border:1px solid #e3e9f1;border-radius:14px;padding:20px;box-shadow:0 5px 18px #2036500c}
+    h2{font-size:18px;margin:0 0 12px}p{line-height:1.5}.muted{color:#68788b;font-size:13px}.field{margin:14px 0}
+    label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}input,textarea{width:100%;font:inherit;padding:10px 11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#15243a}
+    textarea{min-height:110px;resize:vertical}.button{border:0;border-radius:8px;padding:10px 14px;background:#2463dc;color:#fff;font-weight:700;cursor:pointer}
+    .button:disabled{opacity:.6;cursor:wait}.button.secondary{background:#edf3fc;color:#21446e}.button.small{padding:7px 10px;font-size:13px;margin-top:0}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.notice{min-height:20px;margin:10px 0 0;font-size:13px;color:#36536f}
+    .email-list{display:grid;gap:12px}.email{border:1px solid #e1e7ef;border-radius:11px;padding:15px}.email h3{margin:0 0 5px;font-size:16px}.email p{margin:5px 0}.meta{font-size:12px;color:#6b7b8e}
+    .badge{display:inline-block;border-radius:99px;padding:4px 9px;background:#e9f1ff;color:#1d4c9a;font-size:12px;font-weight:700;margin:3px 4px 7px 0}
+    .empty{padding:25px;border:1px dashed #b9c6d6;border-radius:10px;color:#68788b;text-align:center}
+    .reply{min-height:105px;margin-top:10px}.top-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    a{color:#2259b0}@media(max-width:760px){main{grid-template-columns:1fr;margin-top:16px}header{padding:20px}}
+    :root{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:#e8efff;background:#080f1c;color-scheme:dark}
+    body{min-height:100vh;background:radial-gradient(ellipse at 12% 0%,#172e55 0,transparent 37%),radial-gradient(ellipse at 88% 4%,#18294b 0,transparent 28%),#080f1c}
+    header{position:relative;overflow:hidden;padding:26px max(24px,calc((100vw - 1120px)/2));background:linear-gradient(115deg,#0b1424,#101d34 62%,#172647);border-bottom:1px solid #263c61;box-shadow:0 16px 50px #0207127a}
+    header:after{content:"";position:absolute;width:340px;height:340px;right:8%;top:-265px;border-radius:50%;background:#4285ff32;filter:blur(34px);pointer-events:none}
+    .brand-line{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+    .brand-icon{display:grid;place-items:center;width:32px;height:32px;border:1px solid #8bb8ff70;border-radius:10px;background:linear-gradient(145deg,#397ef0,#8057e8);color:#fff;font-size:12px;font-weight:900;letter-spacing:-.5px;box-shadow:0 0 25px #548bff50}
+    .eyebrow{color:#a9c5f1;font-size:10px;font-weight:800;letter-spacing:1.6px}
+    .header-badge{margin-left:auto;padding:7px 11px;border:1px solid #6f91c455;border-radius:99px;background:#14233a;color:#d9e7ff;font-size:11px;font-weight:650}
+    header h1{font-size:32px;letter-spacing:-1px;margin:0 0 6px;font-weight:780}
+    header h1 span{background:linear-gradient(100deg,#87c8ff,#a68aff);background-clip:text;color:transparent}
+    header p{max-width:640px;color:#b8c7df;font-size:14px;line-height:1.65}
+    main{max-width:1120px;margin:30px auto;padding:0 22px;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:22px}
+    .panel{border:1px solid #253856;border-radius:18px;padding:22px;background:linear-gradient(145deg,#111d31ed,#0e1929ed);box-shadow:0 16px 40px #02061065,inset 0 1px #ffffff08;backdrop-filter:blur(12px);animation:rise-in .45s ease both}
+    .panel:nth-child(2){animation-delay:.08s}
+    @keyframes rise-in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+    h2{font-size:19px;letter-spacing:-.3px;color:#edf3ff}
+    .muted{color:#99aaca;font-size:13px}
+    label{color:#c7d5ec;font-size:13px}
+    input,textarea{border-color:#2d4262;border-radius:10px;background:#0a1423;color:#eaf1ff;transition:border-color .16s,box-shadow .16s}
+    input::placeholder,textarea::placeholder{color:#7588a8}
+    input:focus,textarea:focus{outline:none;border-color:#6f9fff;box-shadow:0 0 0 3px #4d82e52a}
+    textarea{line-height:1.55}
+    .button{border-radius:10px;background:linear-gradient(120deg,#3979f3,#7357e8);box-shadow:0 6px 18px #345fdd42;transition:transform .14s,box-shadow .14s,opacity .14s}
+    .button:hover{transform:translateY(-1px);box-shadow:0 9px 24px #4b6ce65c}
+    .button.secondary{background:#17263c;color:#d6e4fc;box-shadow:none;border:1px solid #314665}
+    .button.secondary:hover{background:#20324d}
+    .email-list{gap:14px}
+    .email{border-color:#263b59;border-radius:14px;padding:17px;background:linear-gradient(150deg,#142238,#101b2c);box-shadow:0 8px 24px #0207134f;transition:border-color .18s,transform .18s}
+    .email:hover{border-color:#4c6fa3;transform:translateY(-2px)}
+    .email h3{font-size:16px;letter-spacing:-.2px;color:#edf4ff}
+    .email .meta{margin:0 0 8px;color:#8fa4c4}
+    .badge{padding:5px 10px;background:#1d3150;color:#b9d0f6;border:1px solid #35527c}
+    .email .reply{background:#0b1524}
+    .summary-box{margin:10px 0;padding:11px 13px;border-radius:10px;background:linear-gradient(110deg,#182b48,#17243b);border:1px solid #2c4365;border-left:3px solid #638ffc}
+    .summary-box span{display:block;margin-bottom:4px;color:#8da9d2;font-size:10px;font-weight:800;letter-spacing:1px}
+    .summary-box p{margin:0;color:#cfdbef;font-size:13px;line-height:1.5}
+    .notice{color:#b5c9e9}
+    .empty{border-color:#344b6c;background:#101c2d;color:#9cb0cf}
+    .top-actions{margin-bottom:3px;flex-wrap:wrap}
+    .top-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .source-filter{max-width:190px;padding:8px 10px;border:1px solid #314765;border-radius:9px;background:#101c2d;color:#d1def2;font:inherit;font-size:12px}
+    select option{background:#101c2d;color:#e8efff}
+    a{color:#8eb5ff}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+    /* Welcome experience */
+    .welcome{position:relative;min-height:100svh;overflow:hidden;padding:20px max(24px,calc((100vw - 1160px)/2)) 42px;background:radial-gradient(ellipse at 76% 46%,#233d712e,transparent 38%),linear-gradient(145deg,#080f1c,#0c1424 56%,#11142a)}
+    .welcome:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(#7894c218 1px,transparent 1px),linear-gradient(90deg,#7894c218 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(to bottom,black,transparent 88%)}
+    .welcome:after{content:"";position:absolute;width:540px;height:540px;right:8%;top:14%;border-radius:50%;background:radial-gradient(circle,#695be829,transparent 68%);filter:blur(12px);pointer-events:none}
+    .welcome-nav,.hero,.welcome-footer{position:relative;z-index:1;max-width:1160px;margin:auto}
+    .welcome-nav{height:68px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff12}
+    .wordmark{display:flex;align-items:center;gap:11px;color:#eef3ff;font-size:14px;font-weight:750;letter-spacing:-.2px}
+    .logo-mark{width:37px;height:37px;display:grid;place-items:center;border:1px solid #9bb9ff45;border-radius:13px;background:linear-gradient(145deg,#3979f3,#855ce9);box-shadow:0 7px 22px #5477ee4a}
+    .logo-mark svg{width:23px;height:23px}
+    .nav-note{display:flex;align-items:center;gap:8px;color:#9aabc8;font-size:12px}.live-dot{width:7px;height:7px;border-radius:50%;background:#66d6b0;box-shadow:0 0 12px #66d6b0}
+    .hero{min-height:calc(100svh - 154px);display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:50px;padding:38px 0 28px}
+    .hero-copy{max-width:530px;animation:rise-in .6s ease both}
+    .hero-kicker{display:inline-flex;align-items:center;gap:8px;color:#a9c4f4;font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase}
+    .hero-kicker svg{width:15px;height:15px;color:#a78bfa}
+    .hero h1{margin:20px 0 16px;color:#f4f7ff;font-size:clamp(42px,5.5vw,68px);line-height:1.02;letter-spacing:-3.5px;font-weight:790}
+    .hero h1 span{background:linear-gradient(100deg,#8bd4ff 5%,#a99bff 67%,#d2a5ff);background-clip:text;color:transparent}
+    .hero-copy>p{max-width:490px;margin:0;color:#a8b7d1;font-size:16px;line-height:1.8}
+    .hero-cta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:28px}
+    .built-with{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:25px;color:#7083a4;font-size:9px;font-weight:800;letter-spacing:1.2px}
+    .tech-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid #ffffff16;border-radius:8px;background:#ffffff08;color:#b6c6df;font-size:10px;font-weight:650;letter-spacing:0}
+    .tech-pill svg{width:13px;height:13px;color:#a7bcff}
+    .hero-button{display:inline-flex;align-items:center;gap:10px;border:1px solid #ffffff18;border-radius:12px;padding:13px 17px;background:linear-gradient(110deg,#4385ff,#795ee9);box-shadow:0 10px 28px #4774ec42;color:white;font:inherit;font-size:14px;font-weight:750;cursor:pointer;transition:transform .18s,box-shadow .18s}
+    .hero-button:hover{transform:translateY(-2px);box-shadow:0 14px 34px #4774ec66}.hero-button svg{width:17px;height:17px}
+    .hero-secondary{color:#a8b7d1;font-size:13px;text-decoration:none;padding:10px 5px}.hero-secondary:hover{color:#e4edff}
+    .trust-line{display:flex;align-items:center;gap:9px;margin-top:27px;color:#8294b2;font-size:12px}.trust-line svg{width:15px;height:15px;color:#6ed9b5}
+    .hero-art{position:relative;min-height:440px;display:grid;place-items:center;animation:rise-in .75s .08s ease both}
+    .orbit{position:absolute;width:min(440px,90%);aspect-ratio:1;border:1px solid #7792db24;border-radius:50%;box-shadow:inset 0 0 60px #4f74c60b,0 0 70px #536ae30c}
+    .orbit:before,.orbit:after{content:"";position:absolute;border:1px solid #89a4e01d;border-radius:50%;inset:12%}
+    .orbit:after{inset:25%;border-color:#a78bfa26}
+    .preview-card{position:relative;width:min(445px,100%);padding:20px;border:1px solid #40567b80;border-radius:22px;background:linear-gradient(145deg,#172640f2,#101a2bf5);box-shadow:0 30px 80px #020611a6,0 0 55px #596de11a,inset 0 1px #ffffff12;backdrop-filter:blur(16px);transform:rotate(-2deg)}
+    .preview-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.preview-title{display:flex;align-items:center;gap:9px;color:#eaf1ff;font-size:13px;font-weight:750}.preview-title svg{width:19px;height:19px;color:#98aaff}.preview-count{border:1px solid #334c70;border-radius:99px;padding:5px 9px;color:#a9c2ed;font-size:10px}
+    .preview-mail{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-top:1px solid #ffffff0c}.mail-avatar{flex:none;width:34px;height:34px;display:grid;place-items:center;border:1px solid #546ba2;border-radius:11px;background:#253758;color:#c4d5ff;font-size:11px;font-weight:800}.mail-lines{min-width:0;flex:1}.mail-head{display:flex;justify-content:space-between;gap:8px;color:#e4ebf9;font-size:12px;font-weight:700}.mail-time{color:#8294b2;font-size:10px;font-weight:500}.mail-subject{overflow:hidden;margin-top:5px;color:#9baccc;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.mail-tag{display:inline-flex;margin-top:9px;border:1px solid #3d5276;border-radius:99px;padding:4px 8px;color:#b9ccf4;font-size:9px;font-weight:700}.mail-tag.billing{border-color:#af854a60;background:#6a4c202f;color:#f0ca83}.mail-tag.urgent{border-color:#cf68724f;background:#6b273329;color:#ffabb2}
+    .preview-summary{display:flex;gap:11px;align-items:center;margin-top:14px;padding:13px;border:1px solid #34486a;border-radius:13px;background:linear-gradient(100deg,#1d3150,#18243b)}.summary-icon{flex:none;width:31px;height:31px;display:grid;place-items:center;border-radius:10px;background:#4c70c233;color:#9db9ff}.summary-icon svg{width:17px;height:17px}.summary-copy{color:#b8c8e2;font-size:10px;line-height:1.5}.summary-copy strong{display:block;margin-bottom:2px;color:#dce8fb;font-size:10px}
+    .float-chip{position:absolute;display:flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid #425a82;border-radius:12px;background:#111e31ed;box-shadow:0 13px 35px #02061188;color:#dce8fc;font-size:11px;font-weight:700;animation:float 5s ease-in-out infinite}.float-chip svg{width:15px;height:15px;color:#a995ff}.chip-one{top:10%;right:0}.chip-two{bottom:8%;left:0;animation-delay:-2.4s}.float-chip .chip-green{color:#70dab5}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .welcome-footer{display:flex;justify-content:space-between;gap:16px;padding-top:16px;border-top:1px solid #ffffff12;color:#7183a2;font-size:10px}.welcome-footer span:last-child{color:#96a7c3}
+    .app-shell[hidden],.welcome[hidden]{display:none!important}
+    .workspace-bar{max-width:1120px;margin:23px auto 0;padding:0 22px;display:flex;justify-content:space-between;align-items:center;gap:12px}.back-link{display:inline-flex;align-items:center;gap:8px;color:#a9b9d2;font-size:12px;text-decoration:none}.back-link:hover{color:#fff}.workspace-label{color:#8193b2;font-size:11px;letter-spacing:.5px}
+    @media(max-width:800px){.welcome{padding:12px 20px 24px}.hero{grid-template-columns:1fr;gap:4px;padding-top:49px}.hero-copy{max-width:620px}.hero h1{max-width:600px;font-size:clamp(44px,10vw,64px)}.hero-art{min-height:390px}.preview-card{width:min(445px,92%)}.chip-one{right:1%}.chip-two{left:1%}.welcome-footer{font-size:9px}.workspace-bar{margin-top:18px}}
+    @media(max-width:460px){.nav-note{font-size:10px}.wordmark{font-size:12px}.hero-copy>p{font-size:14px}.hero-art{min-height:350px}.preview-card{padding:15px}.float-chip{font-size:10px}.welcome-footer{flex-direction:column;gap:5px}}
+    @media(max-width:760px){header{padding:22px}.header-badge{font-size:10px}main{grid-template-columns:1fr;margin:18px auto;padding:0 14px;gap:14px}.panel{padding:18px}}
+  </style>
+  <link rel="stylesheet" href="/static/brand-refresh.css">
+</head>
+<body>
+  <section class="welcome" id="welcome-screen" aria-labelledby="welcome-title">
+    <nav class="welcome-nav" aria-label="Main">
+      <div class="wordmark"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5 12 13l8-5.5M5 5h14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 5 5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="m8.8 10.2 1.7 1.7 4-4" stroke="#d4c8ff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>EmailTriage <span style="color:#a99bff">AI</span></div>
+      <div class="nav-note"><span class="live-dot"></span>Test workspace · Human approved</div>
+    </nav>
+    <div class="hero">
+      <div class="hero-copy">
+        <div class="hero-kicker"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 2 1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6L12 2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z" fill="currentColor"/></svg> AI-powered inbox clarity</div>
+        <h1 id="welcome-title">A calmer inbox<br>starts with <span>clarity.</span></h1>
+        <p>EmailTriage AI organizes incoming messages, explains what matters, and prepares a reply draft for your review. You stay in control—nothing is sent automatically.</p>
+        <div class="hero-cta"><button class="hero-button" id="open-workspace" type="button">Try the sample inbox <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><a class="hero-secondary" href="#welcome-how-it-works">Explore the workflow ↓</a></div>
+        <div class="built-with"><span>BUILT WITH</span><span class="tech-pill"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m3 7 9 6 9-6M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Gmail API</span><span class="tech-pill"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Groq AI</span><span class="tech-pill"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3" stroke="currentColor" stroke-width="1.6"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7" stroke="currentColor" stroke-width="1.6"/></svg>PostgreSQL</span></div>
+        <div class="trust-line"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4.2 4.2L19 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Review every label · Edit every draft · Send only from Gmail</div>
+      </div>
+      <div class="hero-art" aria-label="Illustration of an email being reviewed and categorized">
+        <div class="orbit" aria-hidden="true"></div>
+        <div class="preview-card">
+          <div class="preview-top"><div class="preview-title"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.5 12 13l8-5.5M5 5h14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 5 5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Inbox review</div><span class="preview-count">2 messages</span></div>
+          <div class="preview-mail"><div class="mail-avatar">AC</div><div class="mail-lines"><div class="mail-head"><span>Alex Carter</span><span class="mail-time">just now</span></div><div class="mail-subject">Question about duplicate payment</div><span class="mail-tag billing">BILLING</span><span class="mail-tag urgent">HIGH PRIORITY</span></div></div>
+          <div class="preview-mail"><div class="mail-avatar">JM</div><div class="mail-lines"><div class="mail-head"><span>Jamie Morgan</span><span class="mail-time">2 min ago</span></div><div class="mail-subject">Can we reschedule our meeting?</div><span class="mail-tag">MEETINGS</span></div></div>
+          <div class="preview-summary"><span class="summary-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14v11H9l-4 3V5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><div class="summary-copy"><strong>Reply draft ready for your review</strong>Clear summary · Editable reply · No auto-send</div></div>
+        </div>
+        <div class="float-chip chip-one"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>AI summary ready</div>
+        <div class="float-chip chip-two"><svg class="chip-green" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Human stays in control</div>
+      </div>
+    </div>
+    <section class="story-section flow-section" id="welcome-how-it-works" aria-labelledby="flow-title">
+      <div class="section-heading"><span class="section-kicker">A CLEARER WAY TO WORK</span><h2 id="flow-title">From crowded inbox<br>to a confident next step.</h2><p>One focused review brings the important details forward and leaves the final decision with you.</p></div>
+      <div class="flow-grid">
+        <article class="flow-card"><span class="flow-number">01</span><span class="flow-icon">↘</span><h3>Bring in an email</h3><p>Try a sample message, add one for review, or sync the test messages under your EmailTriage Gmail label.</p><small>Sample data · Gmail label sync</small></article>
+        <article class="flow-card"><span class="flow-number">02</span><span class="flow-icon">✳</span><h3>See what matters</h3><p>Get a category, priority, and short summary so the request is easier to understand at a glance.</p><small>Category · Priority · Summary</small></article>
+        <article class="flow-card"><span class="flow-number">03</span><span class="flow-icon">✎</span><h3>Review a reply</h3><p>Edit the suggested reply, then save it as a Gmail draft when Gmail is connected. Nothing sends automatically.</p><small>Your review · Your decision</small></article>
+      </div>
+    </section>
+    <section class="story-section insight-section" aria-labelledby="insight-title">
+      <div class="insight-copy"><span class="section-kicker">A USEFUL FIRST PASS</span><h2 id="insight-title">Know the request<br>before you write back.</h2><p>Instead of rereading a long message, start with a concise summary, a clear label, and a reply you can shape in your own voice.</p><ul><li><span>✓</span>Keep the original message available for context</li><li><span>✓</span>Adjust the draft before it reaches Gmail Drafts</li><li><span>✓</span>Use the inbox filters and overview to review work</li></ul></div>
+      <div class="insight-preview"><div class="insight-window"><div class="window-top"><span></span><span></span><span></span><b>MESSAGE REVIEW</b></div><div class="insight-message"><small>FROM · customer@example.test</small><h3>Invoice question</h3><p>“I was charged twice for my monthly plan. Could you check the duplicate payment?”</p></div><div class="insight-result"><div class="result-labels"><span>Billing</span><span>High priority</span></div><small>SUMMARY</small><p>Customer reports a duplicate monthly charge and asks for a payment check.</p><small>REPLY DRAFT</small><p class="draft-quote">Thanks for letting us know. We’ll review the duplicate charge and follow up with you.</p><span class="draft-status">EDITABLE · NOT SENT</span></div></div><p class="preview-caption">Illustrative example · fictional test email</p></div>
+    </section>
+    <section class="story-section faq-section" aria-labelledby="faq-title">
+      <div class="faq-intro"><span class="section-kicker">GOOD TO KNOW</span><h2 id="faq-title">A few simple answers.</h2><p>Clear boundaries make the workflow easier to trust.</p></div>
+      <div class="faq-list">
+        <details><summary>Does EmailTriage send replies for me?</summary><p>No. It prepares a draft for a person to review. You choose what to edit, save, and eventually send from Gmail.</p></details>
+        <details><summary>What does Gmail sync look at?</summary><p>The project is set up to sync test messages carrying the EmailTriage-Test label. Use fictional or opted-in test messages for demonstrations.</p></details>
+        <details><summary>Can I try it without connecting Gmail?</summary><p>Yes. Open the workspace and use the prefilled sample email to explore classification and reply drafting.</p></details>
+      </div>
+    </section>
+    <section class="closing-cta"><span class="section-kicker">READY TO TAKE A LOOK?</span><h2>Your inbox. A clearer first pass.</h2><p>Try the sample workflow and review every result yourself.</p><button class="hero-button" id="open-workspace-bottom" type="button">Open the sample workspace <span aria-hidden="true">→</span></button></section>
+    <div class="welcome-footer"><span>EMAILTRIAGE AI · SMART INBOX WORKSPACE</span><span>Classify → Summarize → Draft → Review</span></div>
+  </section>
+  <div class="app-shell" id="app-shell" hidden>
+  <div class="workspace-bar"><a class="back-link" id="back-to-welcome" href="#welcome-screen">← Back to introduction</a><span class="workspace-label">SAMPLE &amp; TEST EMAILS</span></div>
+  <header>
+    <div class="brand-line"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M4 7.5 12 13l8-5.5M5 5h14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 5 5Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="eyebrow">SMART INBOX WORKSPACE</span><span class="header-badge">Human review · No auto-send</span></div>
+    <h1>EmailTriage <span>AI</span></h1>
+    <p>Turn incoming messages into clear categories, useful summaries, and reply drafts you control.</p>
+  </header>
+  <section class="workspace-overview" aria-label="Inbox overview">
+    <div class="overview-heading"><div><span class="overview-kicker">YOUR INBOX</span><h2>At a glance</h2></div><span class="overview-live"><i></i>Updates with your filter</span></div>
+    <div class="metric-grid" aria-live="polite">
+      <article class="metric-card"><span class="metric-icon metric-total" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5 12 13l8-5.5M5 5h14a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-11A1.5 1.5 0 0 1 5 5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="metric-copy"><span>Emails in view</span><strong id="metric-total">—</strong></div><small>Selected inbox</small></article>
+      <article class="metric-card"><span class="metric-icon metric-urgent" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 2.8 19h18.4L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 9v4m0 3h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div class="metric-copy"><span>High priority</span><strong id="metric-urgent">—</strong></div><small>Needs attention</small></article>
+      <article class="metric-card"><span class="metric-icon metric-drafts" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14a1 1 0 0 1 1 1v14H4V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.7"/><path d="m8 15 7.8-7.8a1.6 1.6 0 0 1 2.2 2.2L10.2 17H8v-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><div class="metric-copy"><span>Drafts saved</span><strong id="metric-drafts">—</strong></div><small>Ready in Gmail</small></article>
+    </div>
+  </section>
+  <main>
+    <section class="panel">
+      <h2>Try a sample email</h2>
+      <p class="muted">Use fake or test data here. The example is already filled in.</p>
+      <form id="email-form">
+        <div class="field"><label for="sender">From</label><input id="sender" name="sender" type="email" required value="customer@example.test"></div>
+        <div class="field"><label for="subject">Subject</label><input id="subject" name="subject" required value="Invoice question"></div>
+        <div class="field"><label for="body">Email message</label><textarea id="body" name="body" required>Hello, I was charged twice for my monthly plan. Could you check the duplicate payment?</textarea></div>
+        <button class="button" id="triage-button" type="submit">Triage this email</button>
+      </form>
+      <p class="notice" id="form-notice" role="status"></p>
+      <p class="muted" id="provider-status">Checking AI mode…</p>
+    </section>
+    <section class="panel">
+      <div class="top-actions"><h2>Inbox review</h2><div class="top-controls"><select class="source-filter" id="source-filter" aria-label="Choose which emails to show"><option value="sample">Synthetic samples</option><option value="app">App-added emails</option><option value="gmail">Gmail imports</option><option value="all">All emails</option></select><button class="button secondary small" id="refresh-button" type="button">Refresh list</button></div></div>
+      <p class="muted">Review the label and edit a reply before saving it. A Gmail draft is saved only to Drafts.</p>
+      <div id="email-list" class="email-list"><div class="empty">Loading sample inbox…</div></div>
+      <p class="notice" id="list-notice" role="status"></p>
+      <details id="gmail-connect" style="margin-top:18px"><summary class="muted">Connect a test Gmail inbox</summary>
+        <p class="muted">First, label a fake/test message <strong>EmailTriage-Test</strong> in Gmail. Sync imports only messages with this label. The app saves drafts and has no send button; Google’s compose permission is broader, so use your own test account.</p>
+        <button class="button secondary small" id="sync-button" type="button">Sync labeled test emails</button>
+      </details>
+      <p class="muted" style="margin-top:18px">Developer docs: <a href="/docs">API reference</a></p>
+    </section>
+  </main>
+  <section id="how-it-works" class="panel" style="max-width:1076px;margin:0 auto 36px;padding:16px 20px"><div class="top-actions"><h2 style="margin:0">Simple by design</h2><span class="muted">You stay in control at every step</span></div><p class="muted" style="margin-bottom:0">01 · Add or sync a test email &nbsp; → &nbsp; 02 · Review its category and summary &nbsp; → &nbsp; 03 · Edit and save a Gmail draft</p></section>
+  </div>
+  <script>
+    const welcomeScreen = document.querySelector('#welcome-screen');
+    const appShell = document.querySelector('#app-shell');
+    const openWorkspace = () => {welcomeScreen.hidden=true;appShell.hidden=false;window.scrollTo({top:0,behavior:'smooth'});};
+    document.querySelector('#open-workspace').addEventListener('click',openWorkspace);
+    document.querySelector('#open-workspace-bottom').addEventListener('click',openWorkspace);
+    document.querySelector('#back-to-welcome').addEventListener('click',event=>{event.preventDefault();appShell.hidden=true;welcomeScreen.hidden=false;window.scrollTo({top:0,behavior:'smooth'});});
+    document.querySelector('.hero-secondary').addEventListener('click',event=>{event.preventDefault();document.querySelector('#welcome-how-it-works').scrollIntoView({behavior:'smooth'});});
+    const list = document.querySelector('#email-list');
+    let gmailEnabled = false;
+    const esc = (value) => String(value ?? '');
+    function updateOverview(items) {
+      document.querySelector('#metric-total').textContent = items.length;
+      document.querySelector('#metric-urgent').textContent = items.filter(item => item.priority === 'high').length;
+      document.querySelector('#metric-drafts').textContent = items.filter(item => item.status === 'draft_saved').length;
+    }
+    async function loadEmails() {
+      list.replaceChildren(Object.assign(document.createElement('div'), {className:'empty', textContent:'Loading inbox…'}));
+      try {
+        const response = await fetch('/api/emails');
+        let items = await response.json();
+        if (!response.ok) throw new Error(items.detail || 'Could not load inbox.');
+        const source = document.querySelector('#source-filter').value;
+        if (source === 'sample') items = items.filter(item => !item.gmail_id && item.sender.toLowerCase().endsWith('@example.test'));
+        else if (source === 'app') items = items.filter(item => !item.gmail_id);
+        else if (source === 'gmail') items = items.filter(item => Boolean(item.gmail_id));
+        updateOverview(items);
+        list.replaceChildren();
+        if (!items.length) { list.innerHTML = '<div class="empty">No emails yet. Try the sample on the left.</div>'; return; }
+        for (const item of items) {
+          const card = document.createElement('article'); card.className = 'email';
+          const title = document.createElement('h3'); title.textContent = esc(item.subject);
+          const from = document.createElement('p'); from.className='meta'; from.textContent = esc(item.sender);
+          const badges = document.createElement('div');
+          for (const text of [item.category, `${item.priority} priority`, item.status.replaceAll('_',' ')]) { const badge=document.createElement('span'); badge.className='badge'; badge.textContent=esc(text); badges.append(badge); }
+          const summary = document.createElement('div'); summary.className='summary-box'; const summaryTitle=document.createElement('span'); summaryTitle.textContent='AI SUMMARY'; const summaryText=document.createElement('p'); summaryText.textContent=esc(item.summary); summary.append(summaryTitle,summaryText);
+          const label = document.createElement('label'); label.textContent='Reply draft';
+          const reply = document.createElement('textarea'); reply.className='reply'; reply.value=esc(item.draft_reply); reply.setAttribute('aria-label',`Reply draft for ${esc(item.subject)}`);
+          const actions = document.createElement('div'); actions.className='actions';
+          const save = document.createElement('button'); save.className='button secondary small'; save.textContent='Save edited draft';
+          save.addEventListener('click', async()=>{save.disabled=true;try{const r=await fetch(`/api/emails/${item.id}/draft`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({draft_reply:reply.value})});if(!r.ok)throw new Error('Draft could not be saved.');document.querySelector('#list-notice').textContent='Draft saved in this app.';}catch(e){document.querySelector('#list-notice').textContent=e.message;}finally{save.disabled=false;}});
+          actions.append(save);
+          if(gmailEnabled){const gmail=document.createElement('button');gmail.className='button small';const hasGmailDraft=Boolean(item.gmail_draft_id);const legacySaved=item.status==='draft_saved'&&!hasGmailDraft;gmail.textContent=hasGmailDraft?'Update Gmail Draft':legacySaved?'Already in Gmail Drafts':'Save to Gmail Drafts';gmail.disabled=legacySaved;gmail.addEventListener('click',async()=>{gmail.disabled=true;try{const saved=await fetch(`/api/emails/${item.id}/draft`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({draft_reply:reply.value})});if(!saved.ok)throw new Error('Draft could not be saved in the app.');const r=await fetch(`/api/emails/${item.id}/gmail-draft`,{method:'POST'});const data=await r.json();if(!r.ok)throw new Error(data.detail||'Gmail draft could not be saved.');document.querySelector('#list-notice').textContent=data.message;await loadEmails();}catch(e){document.querySelector('#list-notice').textContent=e.message;gmail.disabled=false;}});actions.append(gmail);}
+          card.append(title,from,badges,summary,label,reply,actions);list.append(card);
+        }
+      } catch(error) { list.replaceChildren(Object.assign(document.createElement('div'),{className:'empty',textContent:error.message})); }
+    }
+    document.querySelector('#email-form').addEventListener('submit',async event=>{
+      event.preventDefault();const button=document.querySelector('#triage-button'),notice=document.querySelector('#form-notice');button.disabled=true;button.textContent='Working…';notice.textContent='';
+      try{const payload=Object.fromEntries(new FormData(event.currentTarget));const response=await fetch('/api/emails',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw new Error(data.detail||'Could not triage email.');notice.textContent=`Done: ${data.category} category, ${data.priority} priority. Reply draft is in the inbox review panel.`;document.querySelector('#source-filter').value='app';await loadEmails();}
+      catch(error){notice.textContent=error.message;}finally{button.disabled=false;button.textContent='Triage this email';}
+    });
+    document.querySelector('#refresh-button').addEventListener('click',loadEmails);
+    document.querySelector('#source-filter').addEventListener('change',loadEmails);
+    document.querySelector('#sync-button').addEventListener('click',async event=>{const button=event.currentTarget;button.disabled=true;document.querySelector('#list-notice').textContent='Starting Gmail sync…';try{const response=await fetch('/api/gmail/sync',{method:'POST'});const data=await response.json();if(!response.ok)throw new Error(data.detail||'Gmail sync failed.');document.querySelector('#list-notice').textContent=`Imported ${data.length} new email(s).`;document.querySelector('#source-filter').value='gmail';await loadEmails();}catch(error){document.querySelector('#list-notice').textContent=`${error.message} Follow the Gmail setup steps in README first.`;}finally{button.disabled=false;}});
+    fetch('/health').then(r=>r.json()).then(data=>{const provider=data.ai_mode;gmailEnabled=data.gmail_enabled===true;document.querySelector('#provider-status').textContent=provider==='local_fallback'?'Local demo: simple rules are being used; no email text is sent to an AI provider.':`AI provider: ${provider}. Email text is sent to this provider to create labels and a reply draft.`;if(!gmailEnabled){document.querySelector('#gmail-connect').hidden=true;const note=document.createElement('p');note.className='muted';note.textContent='Hosted demo uses synthetic emails. Gmail connection is enabled in the local test setup.';document.querySelector('#gmail-connect').after(note);}loadEmails();}).catch(()=>{document.querySelector('#provider-status').textContent='Could not read AI provider status.';loadEmails();});
+  </script>
+</body>
+</html>
