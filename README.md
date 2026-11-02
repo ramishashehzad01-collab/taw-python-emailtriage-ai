@@ -50,6 +50,8 @@ flowchart LR
 
 Requires Python 3.11+.
 
+Open PowerShell in the project folder and run these commands one by one:
+
 ```powershell
 py -3.11 -m venv .venv
 .venv\Scripts\Activate.ps1
@@ -59,13 +61,15 @@ docker compose up -d db
 uvicorn app.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/` for the simple inbox. For the developer API docs, open `/docs`. To preload sample emails in another terminal:
+Open `http://127.0.0.1:8000/` for the browser inbox. For developer API documentation, open `http://127.0.0.1:8000/docs`.
+
+To preload sample emails, open another terminal, activate the virtual environment, and run:
 
 ```powershell
 python -m app.demo
 ```
 
-Then use the browser inbox to inspect classifications and edit saved reply drafts. The starter `.env.example` selects `AI_PROVIDER=local`, which runs a deterministic demo fallback without sending email content to an AI service. To try a free provider, create a Gemini API key in Google AI Studio and set these values in your private `.env`:
+Then use the browser inbox to inspect classifications and edit saved reply drafts. The starter `.env.example` selects `AI_PROVIDER=local`, which runs a deterministic demo fallback without sending email content to an AI service. To use Groq, set the following values in your private `.env`:
 
 ```dotenv
 AI_PROVIDER=groq
@@ -122,9 +126,21 @@ See `.env.example`. Never commit `.env`, OAuth credentials, or token files. The 
 
 ## Deployment
 
-The included `render.yaml` is a Render Blueprint for a temporary review demo. After the repository is available on GitHub, connect it to Render as a Blueprint and provide `GROQ_API_KEY` in Render's private environment settings. Never commit `.env`, OAuth client files, OAuth tokens, or provider keys.
+The included `render.yaml` is a Render Blueprint for a temporary review demo.
+
+### Render deployment steps
+
+1. Push the project to your GitHub repository.
+2. Open Render and connect your GitHub account.
+3. Select **New Blueprint Instance** and choose this repository.
+4. Allow Render to read the `render.yaml` configuration.
+5. Add `GROQ_API_KEY` in Render's private environment settings.
+6. Deploy the application and wait for the deployment to complete.
+7. Open the generated Render URL to review the hosted application.
 
 The hosted demo uses synthetic emails and PostgreSQL. Gmail OAuth is disabled in the public demo because the current Google OAuth client is a Desktop client, not a web-server client. Render's free web service can sleep when idle, and its free Postgres database expires after 30 days; use it as a temporary review demo, not for permanent storage.
+
+Never commit `.env`, OAuth client files, OAuth tokens, or provider keys.
 
 ## License
 
