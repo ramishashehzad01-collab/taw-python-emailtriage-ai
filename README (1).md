@@ -68,9 +68,8 @@ python -m app.demo
 Then use the browser inbox to inspect classifications and edit saved reply drafts. The starter `.env.example` selects `AI_PROVIDER=local`, which runs a deterministic demo fallback without sending email content to an AI service. To try a free provider, create a Gemini API key in Google AI Studio and set these values in your private `.env`:
 
 ```dotenv
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_private_key_here
-GEMINI_MODEL=gemini-3.8-flash
+AI_PROVIDER=groq
+GROQ_API_KEY=your_private_key_here
 ```
 
 Install updated dependencies with `python -m pip install -r requirements.txt`, then restart the app. The code also supports Groq, OpenRouter, OpenAI, and Claude; choose the matching `AI_PROVIDER` and set its corresponding key/model variables from `.env.example`. The Gemini API call uses `store=False`. Regardless of provider, use sample/test email content until you review its data handling settings.
