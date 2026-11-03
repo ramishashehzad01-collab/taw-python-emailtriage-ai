@@ -2,7 +2,7 @@
 
 Python + FastAPI app that classifies test-labeled Gmail messages, summarizes them, and prepares reply drafts for a person to review. The app has no send endpoint; its Gmail integration reads messages labeled `EmailTriage-Test` and saves drafts in Gmail.
 
-> **Demo video:** [Watch on Google Drive](https://drive.google.com/file/d/1leMDRpwrMjhFTCtxieIn1VFXubQxw36c/view?usp=sharing) (61 seconds)
+> **Demo video:** [Watch on Google Drive]https://drive.google.com/file/d/1CddjsBIuZxaGaCgex_CdtJDoJ-GCXSsJ/view?usp=sharing (61 seconds)
 
 ## Screenshot
 
